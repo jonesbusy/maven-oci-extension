@@ -21,7 +21,14 @@ public class OciMavenLifecycleParticipant extends AbstractMavenLifecycleParticip
         throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
     }
 
+    @Override
+    public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+        throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
+    }
 
-
+    @Override
+    public void afterSessionEnd(MavenSession session) throws MavenExecutionException {
+        throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
+    }
 }
 
