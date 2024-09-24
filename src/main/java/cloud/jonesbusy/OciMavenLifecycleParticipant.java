@@ -3,6 +3,9 @@ package cloud.jonesbusy;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
+import org.codehaus.plexus.logging.Logger;
+
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -10,19 +13,22 @@ import javax.inject.Singleton;
 @Singleton
 public class OciMavenLifecycleParticipant extends AbstractMavenLifecycleParticipant {
 
+    @Inject
+    private Logger log;
+
     @Override
     public void afterSessionStart(MavenSession session)throws MavenExecutionException {
-        throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
+        log.info("afterSessionStart");
     }
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
+        log.info("afterProjectsRead");
     }
 
     @Override
     public void afterSessionEnd(MavenSession session) throws MavenExecutionException {
-        throw new MavenExecutionException("This is a test exception", new IllegalArgumentException("This is a test cause"));
+        log.info("afterSessionEnd");
     }
 }
 
