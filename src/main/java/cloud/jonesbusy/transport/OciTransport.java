@@ -5,6 +5,7 @@ import land.oras.Error;
 import land.oras.Registry;
 import land.oras.OrasException;
 import land.oras.auth.UsernamePasswordProvider;
+import land.oras.utils.JsonUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.eclipse.aether.ConfigurationProperties;
@@ -19,11 +20,13 @@ import org.eclipse.aether.spi.connector.transport.http.HttpTransporter;
 import org.eclipse.aether.spi.connector.transport.http.HttpTransporterException;
 import org.eclipse.aether.transfer.NoTransporterException;
 import org.eclipse.aether.util.ConfigUtils;
+import org.eclipse.aether.util.FileUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -105,6 +108,16 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     protected void implGet(GetTask task) throws HttpTransporterException, IOException {
         logger.debug("Getting " + task.getLocation());
         Path dataPath = task.getDataPath();
+        if (dataPath.toFile().isFile()) {
+            logger.debug("File already exists at " + dataPath);
+        }
+        else if (dataPath.toFile().isDirectory()) {
+            logger.debug("Directory already exists at " + dataPath);
+        }
+        else {
+            logger.debug("Creating directory at " + dataPath);
+            Files.createDirectories(dataPath);
+        }
         String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
         logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
         try {
@@ -112,20 +125,38 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         }
         // Correctly return the HTTP status code with HttpTransporterException
         catch(OrasException e) {
+            logger.debug("Failed to get artifact from " + containerRef, e);
             Error error = e.getError();
             if (error != null) {
-                int code = Integer.parseInt(error.code());
-                if (code > 300) {
-                    throw new HttpTransporterException(code);
-                }
+                logger.debug("Error: " + JsonUtils.toJson(error));
             }
-            throw new IOException("Failed to get artifact from " + containerRef, e);
+            throw new HttpTransporterException(e.getStatusCode());
         }
     }
 
     @Override
     protected void implPut(PutTask task) throws Exception {
         logger.debug("Putting " + task.getLocation());
+        Path dataPath = task.getDataPath();
+        if (dataPath == null) {
+            throw new IllegalArgumentException("Data path is null");
+        }
+        String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+        try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
+            try {
+                utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
+                registry.pushArtifact(ContainerRef.parse(containerRef), tempFile.getPath());
+            }
+            catch (OrasException e) {
+                logger.debug("Failed to put artifact to " + containerRef, e);
+                Error error = e.getError();
+                if (error != null) {
+                    logger.debug("Error: " + JsonUtils.toJson(error));
+                }
+                throw new HttpTransporterException(e.getStatusCode());
+            }
+        }
+
     }
 
     @Override
@@ -137,8 +168,10 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     public int classify(Throwable error) {
         if (error instanceof HttpTransporterException
                 && ((HttpTransporterException) error).getStatusCode() == 404) {
+            logger.debug("Artifact not found");
             return ERROR_NOT_FOUND;
         }
+        logger.error("Error during transport", error);
         return ERROR_OTHER;
     }
 }
