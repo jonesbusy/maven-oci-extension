@@ -1,6 +1,7 @@
 package cloud.jonesbusy.transport;
 
 import land.oras.ContainerRef;
+import land.oras.Error;
 import land.oras.Registry;
 import land.oras.OrasException;
 import land.oras.auth.UsernamePasswordProvider;
@@ -15,10 +16,12 @@ import org.eclipse.aether.spi.connector.transport.GetTask;
 import org.eclipse.aether.spi.connector.transport.PeekTask;
 import org.eclipse.aether.spi.connector.transport.PutTask;
 import org.eclipse.aether.spi.connector.transport.http.HttpTransporter;
+import org.eclipse.aether.spi.connector.transport.http.HttpTransporterException;
 import org.eclipse.aether.transfer.NoTransporterException;
 import org.eclipse.aether.util.ConfigUtils;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -80,7 +83,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         Registry.Builder registryBuilder = Registry.Builder.builder();
 
         // Set insecure flag
-        registryBuilder.withInsecure(insecure);
+        registryBuilder.withInsecure(true);
 
         try (AuthenticationContext repoAuthContext = AuthenticationContext.forRepository(session, repository)) {
             if (repoAuthContext != null) {
@@ -99,7 +102,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     }
 
     @Override
-    protected void implGet(GetTask task) throws Exception {
+    protected void implGet(GetTask task) throws HttpTransporterException, IOException {
         logger.debug("Getting " + task.getLocation());
         Path dataPath = task.getDataPath();
         String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
@@ -107,8 +110,16 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         try {
             registry.pullArtifact(ContainerRef.parse(containerRef), dataPath);
         }
+        // Correctly return the HTTP status code with HttpTransporterException
         catch(OrasException e) {
-
+            Error error = e.getError();
+            if (error != null) {
+                int code = Integer.parseInt(error.code());
+                if (code > 300) {
+                    throw new HttpTransporterException(code);
+                }
+            }
+            throw new IOException("Failed to get artifact from " + containerRef, e);
         }
     }
 
@@ -124,6 +135,10 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
 
     @Override
     public int classify(Throwable error) {
-        return 0;
+        if (error instanceof HttpTransporterException
+                && ((HttpTransporterException) error).getStatusCode() == 404) {
+            return ERROR_NOT_FOUND;
+        }
+        return ERROR_OTHER;
     }
 }

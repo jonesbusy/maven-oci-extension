@@ -2,6 +2,7 @@ package cloud.jonesbusy.layout;
 
 
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.spi.artifact.ArtifactPredicate;
@@ -30,8 +31,7 @@ public class OciRepositoryLayout implements RepositoryLayout {
      * The artifact predicate
      */
     private final ArtifactPredicate artifactPredicate;
-    @Inject
-    private Logger log;
+    private Logger logger = new ConsoleLogger(Logger.LEVEL_DEBUG, "OciRepositoryLayout");
 
     /**
      * Creates a new OCI repository layout.
@@ -77,8 +77,9 @@ public class OciRepositoryLayout implements RepositoryLayout {
             }
         }
         path.append(metadata.getType());
-        log.info("Metadata path: " + path);
-        return toUri(path.toString());
+        path.append(":latest");
+        logger.info("Metadata path: " + path);
+        return toUri(path.toString().toLowerCase());
     }
 
     @Override
