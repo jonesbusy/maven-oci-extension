@@ -12,6 +12,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+/**
+ * Layout for OCI repositories.
+ */
 public class OciRepositoryLayout implements RepositoryLayout {
 
     @Inject
@@ -38,7 +41,11 @@ public class OciRepositoryLayout implements RepositoryLayout {
 
     @Override
     public URI getLocation(Metadata metadata, boolean upload) {
-        return null;
+        try {
+            return new URI("manifests/%s/%s".formatted(metadata.getGroupId(), metadata.getArtifactId()));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
