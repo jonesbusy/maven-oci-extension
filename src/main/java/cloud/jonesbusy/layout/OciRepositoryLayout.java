@@ -5,9 +5,7 @@ import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.spi.artifact.ArtifactPredicate;
-import org.eclipse.aether.spi.artifact.ArtifactPredicateFactory;
 import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmFactory;
-import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmFactorySelector;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
 
 import javax.inject.Inject;
@@ -24,23 +22,22 @@ import static java.util.Objects.requireNonNull;
  */
 public class OciRepositoryLayout implements RepositoryLayout {
 
-    @Inject
-    private Logger log;
-
     /**
      * The checksum algorithms configured for this layout.
      */
     private final List<ChecksumAlgorithmFactory> configuredChecksumAlgorithms;
-
     /**
      * The artifact predicate
      */
     private final ArtifactPredicate artifactPredicate;
+    @Inject
+    private Logger log;
 
     /**
      * Creates a new OCI repository layout.
+     *
      * @param configuredChecksumAlgorithms The checksum algorithms configured for this layout.
-     * @param artifactPredicate The artifact predicate.
+     * @param artifactPredicate            The artifact predicate.
      */
     public OciRepositoryLayout(List<ChecksumAlgorithmFactory> configuredChecksumAlgorithms,
                                ArtifactPredicate artifactPredicate) {
@@ -69,11 +66,19 @@ public class OciRepositoryLayout implements RepositoryLayout {
 
     @Override
     public URI getLocation(Metadata metadata, boolean upload) {
-        try {
-            return new URI("manifests/%s/%s".formatted(metadata.getGroupId(), metadata.getArtifactId()));
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+        StringBuilder path = new StringBuilder(128);
+        if (!metadata.getGroupId().isEmpty()) {
+            path.append(metadata.getGroupId().replace('.', '/')).append('/');
+            if (!metadata.getArtifactId().isEmpty()) {
+                path.append(metadata.getArtifactId()).append('/');
+                if (!metadata.getVersion().isEmpty()) {
+                    path.append(metadata.getVersion()).append('/');
+                }
+            }
         }
+        path.append(metadata.getType());
+        log.info("Metadata path: " + path);
+        return toUri(path.toString());
     }
 
     @Override
@@ -96,4 +101,13 @@ public class OciRepositoryLayout implements RepositoryLayout {
         }
         return checksumLocations;
     }
+
+    private URI toUri(String path) {
+        try {
+            return new URI(null, null, path, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 }
