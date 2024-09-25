@@ -17,7 +17,7 @@ public final class OciTransportFactory implements TransporterFactory {
     @Override
     public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException {
         if ("oci".equals(repository.getProtocol())) {
-            return new OciTransport(repository);
+            return new OciTransport(session, repository);
         }
         throw new NoTransporterException(repository, "Unsupported repository protocol: " + repository.getProtocol());
     }
