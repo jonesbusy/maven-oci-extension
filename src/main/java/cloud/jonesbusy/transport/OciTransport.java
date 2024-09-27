@@ -1,10 +1,14 @@
 package cloud.jonesbusy.transport;
 
+import land.oras.Annotations;
 import land.oras.ContainerRef;
 import land.oras.Error;
+import land.oras.Manifest;
 import land.oras.Registry;
 import land.oras.OrasException;
+import land.oras.auth.EnvironmentPasswordProvider;
 import land.oras.auth.UsernamePasswordProvider;
+import land.oras.utils.Const;
 import land.oras.utils.JsonUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
@@ -24,10 +28,12 @@ import org.eclipse.aether.util.FileUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Transporter for OCI repositories.
@@ -86,7 +92,9 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         Registry.Builder registryBuilder = Registry.Builder.builder();
 
         // Set insecure flag
-        registryBuilder.withInsecure(true);
+        registryBuilder.withInsecure(false);
+
+        registryBuilder.withAuthProvider(new EnvironmentPasswordProvider());
 
         try (AuthenticationContext repoAuthContext = AuthenticationContext.forRepository(session, repository)) {
             if (repoAuthContext != null) {
@@ -100,32 +108,14 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     }
 
     @Override
-    protected void implPeek(PeekTask task) throws Exception {
+    protected void implPeek(PeekTask task) throws HttpTransporterException, IOException {
         logger.debug("Peeking " + task.getLocation());
-    }
-
-    @Override
-    protected void implGet(GetTask task) throws HttpTransporterException, IOException {
-        logger.debug("Getting " + task.getLocation());
-        Path dataPath = task.getDataPath();
-        if (dataPath.toFile().isFile()) {
-            logger.debug("File already exists at " + dataPath);
-        }
-        else if (dataPath.toFile().isDirectory()) {
-            logger.debug("Directory already exists at " + dataPath);
-        }
-        else {
-            logger.debug("Creating directory at " + dataPath);
-            Files.createDirectories(dataPath);
-        }
         String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
-        logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
         try {
-            registry.pullArtifact(ContainerRef.parse(containerRef), dataPath);
+            Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
         }
-        // Correctly return the HTTP status code with HttpTransporterException
         catch(OrasException e) {
-            logger.debug("Failed to get artifact from " + containerRef, e);
+            logger.debug("Failed to peek artifact at " + containerRef, e);
             Error error = e.getError();
             if (error != null) {
                 logger.debug("Error: " + JsonUtils.toJson(error));
@@ -135,20 +125,23 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     }
 
     @Override
-    protected void implPut(PutTask task) throws Exception {
-        logger.debug("Putting " + task.getLocation());
+    protected void implGet(GetTask task) throws HttpTransporterException, IOException {
+        logger.debug("Getting " + task.getLocation());
         Path dataPath = task.getDataPath();
-        if (dataPath == null) {
-            throw new IllegalArgumentException("Data path is null");
-        }
-        String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
         try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
+            String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+            logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
             try {
-                utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
-                registry.pushArtifact(ContainerRef.parse(containerRef), tempFile.getPath());
+                Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+                logger.debug("Got manifest: " + JsonUtils.toJson(manifest));
+                //registry.pullArtifact(ContainerRef.parse(containerRef), tempFile.getPath());
+                //task.setChecksum("SHA-256", manifest.getLayers().get(0).getDigest());
             }
-            catch (OrasException e) {
-                logger.debug("Failed to put artifact to " + containerRef, e);
+            // Correctly return the HTTP status code with HttpTransporterException
+            catch(OrasException e) {
+                if (e.getStatusCode() != 404) {
+                    logger.debug("Failed to get artifact to " + containerRef, e);
+                }
                 Error error = e.getError();
                 if (error != null) {
                     logger.debug("Error: " + JsonUtils.toJson(error));
@@ -156,6 +149,32 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
                 throw new HttpTransporterException(e.getStatusCode());
             }
         }
+
+    }
+
+    @Override
+    protected void implPut(PutTask task) throws Exception {
+        logger.debug("Putting " + task.getLocation());
+        Path dataPath = task.getDataPath();
+        logger.debug("Claas: " + task.getClass());
+        String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+        //try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
+            try {
+                //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
+                Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()));
+                registry.pushArtifact(ContainerRef.parse(containerRef), "maven", annotations, dataPath);
+            }
+            catch (OrasException e) {
+                if (e.getStatusCode() != 404) {
+                    logger.debug("Failed to put artifact to " + containerRef, e);
+                }
+                Error error = e.getError();
+                if (error != null) {
+                    logger.debug("Error: " + JsonUtils.toJson(error));
+                }
+                throw new HttpTransporterException(e.getStatusCode());
+            }
+        //}
 
     }
 

@@ -25,7 +25,7 @@ import static java.util.Objects.requireNonNull;
 @Named("oci")
 public class OciRepositoryLayoutFactory implements RepositoryLayoutFactory {
 
-    public static final String DEFAULT_CHECKSUMS_ALGORITHMS = "SHA-256";
+    public static final String DEFAULT_CHECKSUMS_ALGORITHMS = "";
     private final ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector;
     private final ArtifactPredicateFactory artifactPredicateFactory;
     @Inject
