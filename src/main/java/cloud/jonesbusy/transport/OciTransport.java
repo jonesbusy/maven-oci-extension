@@ -31,8 +31,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
 /**
@@ -128,14 +130,17 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     protected void implGet(GetTask task) throws HttpTransporterException, IOException {
         logger.debug("Getting " + task.getLocation());
         Path dataPath = task.getDataPath();
+        logger.debug("dataPath: " + dataPath);
+        logger.debug("parent: " + dataPath.getParent());
         try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
+            //task.setDataPath(tempFile.getPath());
             String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
             logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
             try {
-                Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
-                logger.debug("Got manifest: " + JsonUtils.toJson(manifest));
-                //registry.pullArtifact(ContainerRef.parse(containerRef), tempFile.getPath());
-                //task.setChecksum("SHA-256", manifest.getLayers().get(0).getDigest());
+                //Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+                //logger.debug("Got manifest: " + JsonUtils.toJson(manifest));
+                registry.pullArtifact(ContainerRef.parse(containerRef), dataPath.getParent(), true);
+                //Files.copy(tempFile.getPath(), dataPath, StandardCopyOption.REPLACE_EXISTING);
             }
             // Correctly return the HTTP status code with HttpTransporterException
             catch(OrasException e) {
