@@ -137,7 +137,8 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
             String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
             logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
             try {
-                //Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+                Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+                InputStream stream = registry.fetchBlob(ContainerRef.parse(containerRef));
                 //logger.debug("Got manifest: " + JsonUtils.toJson(manifest));
                 registry.pullArtifact(ContainerRef.parse(containerRef), dataPath.getParent(), true);
                 //Files.copy(tempFile.getPath(), dataPath, StandardCopyOption.REPLACE_EXISTING);
