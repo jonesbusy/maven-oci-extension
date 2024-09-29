@@ -1,5 +1,6 @@
 package cloud.jonesbusy.transport;
 
+import cloud.jonesbusy.layout.OciRepositoryLayoutFactory;
 import land.oras.Annotations;
 import land.oras.ContainerRef;
 import land.oras.Error;
@@ -42,7 +43,11 @@ import java.util.Map;
  */
 public class OciTransport extends AbstractTransporter implements HttpTransporter {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(OciTransport.class);
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = new ConsoleLogger(Logger.LEVEL_DEBUG, OciTransport.class.getName());
+
     /**
      * The repository this transporter is for.
      */
@@ -62,12 +67,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
      */
     public OciTransport(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException  {
         this.repository = repository;
-        final String httpsSecurityMode = ConfigUtils.getString(
-                session,
-                ConfigurationProperties.HTTPS_SECURITY_MODE_DEFAULT,
-                ConfigurationProperties.HTTPS_SECURITY_MODE + "." + repository.getId(),
-                ConfigurationProperties.HTTPS_SECURITY_MODE);
-        final boolean insecure = ConfigurationProperties.HTTPS_SECURITY_MODE_INSECURE.equals(httpsSecurityMode);
+        final boolean insecure = repository.getProtocol().equals("oci+http");
         this.registry = createRegistry(session, repository, insecure);
 
         // We omit the scheme for the container ref

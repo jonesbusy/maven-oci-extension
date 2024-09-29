@@ -9,7 +9,6 @@ import org.eclipse.aether.spi.artifact.ArtifactPredicate;
 import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmFactory;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayout;
 
-import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -23,6 +22,8 @@ import static java.util.Objects.requireNonNull;
  */
 public class OciRepositoryLayout implements RepositoryLayout {
 
+    private static final Logger LOG = new ConsoleLogger(Logger.LEVEL_DEBUG, OciRepositoryLayout.class.getName());
+
     /**
      * The checksum algorithms configured for this layout.
      */
@@ -31,7 +32,6 @@ public class OciRepositoryLayout implements RepositoryLayout {
      * The artifact predicate
      */
     private final ArtifactPredicate artifactPredicate;
-    private Logger logger = new ConsoleLogger(Logger.LEVEL_DEBUG, "OciRepositoryLayout");
 
     /**
      * Creates a new OCI repository layout.
@@ -78,7 +78,7 @@ public class OciRepositoryLayout implements RepositoryLayout {
         }
         path.append(metadata.getType());
         path.append(":latest");
-        logger.info("Metadata path: " + path);
+        LOG.info("Metadata path: " + path);
         return toUri(path.toString().toLowerCase());
     }
 

@@ -1,6 +1,7 @@
 package cloud.jonesbusy.transport;
 
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.transport.Transporter;
@@ -16,13 +17,15 @@ import javax.inject.Named;
 @Named("oci")
 public final class OciTransportFactory implements TransporterFactory {
 
-    @Inject
-    private Logger log;
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = new ConsoleLogger(Logger.LEVEL_DEBUG, OciTransport.class.getName());
 
     @Override
     public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException {
-        if ("oci".equals(repository.getProtocol())) {
-            log.info("Creating OCI transporter for repository " + repository.getId());
+        if ("oci".equals(repository.getProtocol()) || "oci+http".equals(repository.getProtocol())) {
+            LOG.info("Creating OCI transporter for repository " + repository.getId());
             return new OciTransport(session, repository);
         }
         throw new NoTransporterException(repository, "Unsupported repository protocol: " + repository.getProtocol());

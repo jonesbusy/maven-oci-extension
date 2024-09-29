@@ -1,6 +1,7 @@
 package cloud.jonesbusy.layout;
 
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.artifact.ArtifactPredicateFactory;
@@ -25,11 +26,14 @@ import static java.util.Objects.requireNonNull;
 @Named("oci")
 public class OciRepositoryLayoutFactory implements RepositoryLayoutFactory {
 
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = new ConsoleLogger(Logger.LEVEL_DEBUG, OciRepositoryLayoutFactory.class.getName());
+
     public static final String DEFAULT_CHECKSUMS_ALGORITHMS = "";
     private final ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector;
     private final ArtifactPredicateFactory artifactPredicateFactory;
-    @Inject
-    private Logger log;
 
     @Inject
     public OciRepositoryLayoutFactory(
@@ -43,12 +47,12 @@ public class OciRepositoryLayoutFactory implements RepositoryLayoutFactory {
     public RepositoryLayout newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoRepositoryLayoutException {
 
         // Only OCI layout is supported by this factory
-        log.info("Repository content type: " + repository.getContentType());
+        LOG.info("Repository content type: " + repository.getContentType());
         if (!"oci".equals(repository.getProtocol())) {
             throw new NoRepositoryLayoutException(repository);
         }
 
-        log.info("Creating OCI repository layout for repository " + repository.getId());
+        LOG.info("Creating OCI repository layout for repository " + repository.getId());
         List<ChecksumAlgorithmFactory> checksumsAlgorithms = checksumAlgorithmFactorySelector.selectList(
                 ConfigUtils.parseCommaSeparatedUniqueNames(ConfigUtils.getString(
                         session,
