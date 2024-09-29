@@ -48,7 +48,7 @@ public class OciRepositoryLayoutFactory implements RepositoryLayoutFactory {
 
         // Only OCI layout is supported by this factory
         LOG.info("Repository content type: " + repository.getContentType());
-        if (!"oci".equals(repository.getProtocol())) {
+        if (!"oci".equals(repository.getProtocol()) && !"oci+http".equals(repository.getProtocol())) {
             throw new NoRepositoryLayoutException(repository);
         }
 

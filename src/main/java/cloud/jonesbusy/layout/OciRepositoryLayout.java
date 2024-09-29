@@ -71,9 +71,6 @@ public class OciRepositoryLayout implements RepositoryLayout {
             path.append(metadata.getGroupId().replace('.', '/')).append('/');
             if (!metadata.getArtifactId().isEmpty()) {
                 path.append(metadata.getArtifactId()).append('/');
-                if (!metadata.getVersion().isEmpty()) {
-                    path.append(metadata.getVersion()).append('/');
-                }
             }
         }
         path.append(metadata.getType());

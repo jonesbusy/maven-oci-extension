@@ -1,12 +1,8 @@
 package cloud.jonesbusy.transport;
 
 import cloud.jonesbusy.layout.OciRepositoryLayoutFactory;
-import land.oras.Annotations;
-import land.oras.ContainerRef;
+import land.oras.*;
 import land.oras.Error;
-import land.oras.Manifest;
-import land.oras.Registry;
-import land.oras.OrasException;
 import land.oras.auth.EnvironmentPasswordProvider;
 import land.oras.auth.UsernamePasswordProvider;
 import land.oras.utils.Const;
@@ -28,6 +24,7 @@ import org.eclipse.aether.util.ConfigUtils;
 import org.eclipse.aether.util.FileUtils;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -68,6 +65,8 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     public OciTransport(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException  {
         this.repository = repository;
         final boolean insecure = repository.getProtocol().equals("oci+http");
+        logger.info("Creating OCI transporter for repository " + repository.getId());
+        logger.info("Insecure: " + insecure);
         this.registry = createRegistry(session, repository, insecure);
 
         // We omit the scheme for the container ref
@@ -91,10 +90,10 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
      * @return The OCI Registry client
      */
     private static Registry createRegistry(RepositorySystemSession session, RemoteRepository repository, boolean insecure) {
-        Registry.Builder registryBuilder = Registry.Builder.builder();
+        Registry.Builder registryBuilder = Registry.Builder.builder().withInsecure(insecure);
 
         // Set insecure flag
-        registryBuilder.withInsecure(false);
+        registryBuilder.withInsecure(insecure);
 
         registryBuilder.withAuthProvider(new EnvironmentPasswordProvider());
 
@@ -127,35 +126,55 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     }
 
     @Override
-    protected void implGet(GetTask task) throws HttpTransporterException, IOException {
+    protected void implGet(GetTask task) throws Exception {
         logger.debug("Getting " + task.getLocation());
         Path dataPath = task.getDataPath();
         logger.debug("dataPath: " + dataPath);
         logger.debug("parent: " + dataPath.getParent());
-        try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
-            //task.setDataPath(tempFile.getPath());
-            String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
-            logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
-            try {
-                Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
-                InputStream stream = registry.fetchBlob(ContainerRef.parse(containerRef));
-                //logger.debug("Got manifest: " + JsonUtils.toJson(manifest));
-                registry.pullArtifact(ContainerRef.parse(containerRef), dataPath.getParent(), true);
-                //Files.copy(tempFile.getPath(), dataPath, StandardCopyOption.REPLACE_EXISTING);
+        String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+        try {
+            Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+            logger.debug(JsonUtils.toJson(manifest));
+            Layer l = manifest.getLayers().stream().filter(layer -> layer.getAnnotations().containsKey(Const.ANNOTATION_TITLE)).findFirst().get();
+            InputStream response = registry.fetchBlob(ContainerRef.parse("%s:%s".formatted(containerRef, l.getDigest())));
+            final Path dataFile = task.getDataPath();
+            if (dataFile == null) {
+                logger.debug("Data file is null");
+                try (InputStream is = response) {
+                    utilGet(task, is, true, -1, false);
+                    logger.debug("First untilGet");
+                }
             }
-            // Correctly return the HTTP status code with HttpTransporterException
-            catch(OrasException e) {
-                if (e.getStatusCode() != 404) {
-                    logger.debug("Failed to get artifact to " + containerRef, e);
+            try (FileUtils.CollocatedTempFile tempFile = FileUtils.newTempFile(dataFile)) {
+                task.setDataPath(tempFile.getPath(), false);
+                if (Files.isRegularFile(dataFile)) {
+                    try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(dataFile))) {
+                        Files.copy(inputStream, tempFile.getPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
                 }
-                Error error = e.getError();
-                if (error != null) {
-                    logger.debug("Error: " + JsonUtils.toJson(error));
+                try (InputStream is = response) {
+                    utilGet(task, is, true, -1, false);
+                    logger.debug("Second untilGet");
                 }
-                throw new HttpTransporterException(e.getStatusCode());
+                tempFile.move();
+                logger.debug("Getting artifact from " + containerRef + " to " + dataPath);
+                // Correctly return the HTTP status code with HttpTransporterException
+
+            }
+            finally {
+                task.setDataPath(dataFile);
             }
         }
-
+        catch(OrasException e) {
+            if (e.getStatusCode() != 404) {
+                logger.debug("Failed to get artifact to " + containerRef, e);
+            }
+            Error error = e.getError();
+            if (error != null) {
+                logger.debug("Error: " + JsonUtils.toJson(error));
+            }
+            throw new HttpTransporterException(e.getStatusCode());
+        }
     }
 
     @Override
@@ -169,6 +188,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
                 //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
                 Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()));
                 registry.pushArtifact(ContainerRef.parse(containerRef), "maven", annotations, dataPath);
+                logger.debug("Uploaded artifact from " + dataPath + " to " + containerRef);
             }
             catch (OrasException e) {
                 if (e.getStatusCode() != 404) {
