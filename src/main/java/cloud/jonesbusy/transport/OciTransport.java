@@ -136,7 +136,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
             Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
             logger.debug(JsonUtils.toJson(manifest));
             Layer l = manifest.getLayers().stream().filter(layer -> layer.getAnnotations().containsKey(Const.ANNOTATION_TITLE)).findFirst().get();
-            InputStream response = registry.fetchBlob(ContainerRef.parse("%s:%s".formatted(containerRef, l.getDigest())));
+            InputStream response = registry.fetchBlob(ContainerRef.parse("%s@sha256:%s".formatted(containerRef, l.getDigest())));
             final Path dataFile = task.getDataPath();
             if (dataFile == null) {
                 logger.debug("Data file is null");
