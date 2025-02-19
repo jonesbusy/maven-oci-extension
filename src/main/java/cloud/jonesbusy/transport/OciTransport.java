@@ -1,15 +1,14 @@
 package cloud.jonesbusy.transport;
 
-import cloud.jonesbusy.layout.OciRepositoryLayoutFactory;
 import land.oras.*;
-import land.oras.Error;
-import land.oras.auth.EnvironmentPasswordProvider;
+import land.oras.auth.FileStoreAuthenticationProvider;
+import land.oras.exception.Error;
 import land.oras.auth.UsernamePasswordProvider;
+import land.oras.exception.OrasException;
 import land.oras.utils.Const;
 import land.oras.utils.JsonUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
-import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.AuthenticationContext;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -20,9 +19,7 @@ import org.eclipse.aether.spi.connector.transport.PutTask;
 import org.eclipse.aether.spi.connector.transport.http.HttpTransporter;
 import org.eclipse.aether.spi.connector.transport.http.HttpTransporterException;
 import org.eclipse.aether.transfer.NoTransporterException;
-import org.eclipse.aether.util.ConfigUtils;
 import org.eclipse.aether.util.FileUtils;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -95,7 +92,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         // Set insecure flag
         registryBuilder.withInsecure(insecure);
 
-        registryBuilder.withAuthProvider(new EnvironmentPasswordProvider());
+        registryBuilder.withAuthProvider(new FileStoreAuthenticationProvider());
 
         try (AuthenticationContext repoAuthContext = AuthenticationContext.forRepository(session, repository)) {
             if (repoAuthContext != null) {
