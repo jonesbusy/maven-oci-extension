@@ -184,7 +184,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
             try {
                 //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
                 Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()));
-                registry.pushArtifact(ContainerRef.parse(containerRef), "maven", annotations, dataPath);
+                registry.pushArtifact(ContainerRef.parse(containerRef), ArtifactType.from("application/vnd.maven.artifact.v1"), annotations, LocalPath.of(dataPath));
                 logger.debug("Uploaded artifact from " + dataPath + " to " + containerRef);
             }
             catch (OrasException e) {
