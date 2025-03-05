@@ -87,22 +87,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
      * @return The OCI Registry client
      */
     private static Registry createRegistry(RepositorySystemSession session, RemoteRepository repository, boolean insecure) {
-        Registry.Builder registryBuilder = Registry.Builder.builder().withInsecure(insecure);
-
-        // Set insecure flag
-        registryBuilder.withInsecure(insecure);
-
-        registryBuilder.withAuthProvider(new FileStoreAuthenticationProvider());
-
-        try (AuthenticationContext repoAuthContext = AuthenticationContext.forRepository(session, repository)) {
-            if (repoAuthContext != null) {
-                String username = repoAuthContext.get(AuthenticationContext.USERNAME);
-                String password = repoAuthContext.get(AuthenticationContext.PASSWORD);
-                registryBuilder.withAuthProvider(new UsernamePasswordProvider(username, password));
-            }
-        }
-
-        return registryBuilder.build();
+        return Registry.Builder.builder().withInsecure(insecure).defaults().build();
     }
 
     @Override
@@ -128,14 +113,15 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         Path dataPath = task.getDataPath();
         logger.debug("dataPath: " + dataPath);
         logger.debug("parent: " + dataPath.getParent());
-        String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+        String container = "%s/%s".formatted(baseUri, task.getLocation());
+        ContainerRef containerRef = ContainerRef.parse(container);
         try {
             logger.debug("Getting manifest");
-            Manifest manifest = registry.getManifest(ContainerRef.parse(containerRef));
+            Manifest manifest = registry.getManifest(containerRef);
             logger.debug(JsonUtils.toJson(manifest));
             Layer l = manifest.getLayers().stream().filter(layer -> layer.getAnnotations().containsKey(Const.ANNOTATION_TITLE)).findFirst().get();
             logger.debug("Getting blob");
-            InputStream response = registry.fetchBlob(ContainerRef.parse("%s@sha256:%s".formatted(containerRef, l.getDigest())));
+            InputStream response = registry.fetchBlob(containerRef.withDigest(l.getDigest()));
             final Path dataFile = task.getDataPath();
             if (dataFile == null) {
                 logger.debug("Data file is null");
