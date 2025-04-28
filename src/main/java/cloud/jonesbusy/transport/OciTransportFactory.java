@@ -7,7 +7,9 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.transport.Transporter;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transfer.NoTransporterException;
-import org.apache.maven.api.di.Named;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * Factory for creating OCI transporters.
