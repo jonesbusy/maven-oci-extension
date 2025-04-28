@@ -12,9 +12,9 @@ import org.eclipse.aether.spi.connector.layout.RepositoryLayoutFactory;
 import org.eclipse.aether.transfer.NoRepositoryLayoutException;
 import org.eclipse.aether.util.ConfigUtils;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.apache.maven.api.di.Singleton;
+import org.apache.maven.api.di.Named;
+import org.apache.maven.api.di.Inject;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
