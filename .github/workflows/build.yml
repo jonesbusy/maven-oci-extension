@@ -1,0 +1,30 @@
+name: build
+
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.18.0
+        with:
+          java-distribution: graalvm
+          java-version: 21
+          maven-version: 3.9.9
+          cache-enabled: true
+
+      - name: Maven build
+        run: mvn --batch-mode --update-snapshots verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
