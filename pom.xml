@@ -82,6 +82,13 @@
             <artifactId>oras-java-sdk</artifactId>
             <version>0.2.10</version>
         </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <scope>provided</scope>
+            <version>1</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
