@@ -13,7 +13,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.version>4.0.0-rc-2</maven.version>
+        <maven.version>4.0.0-rc-3</maven.version>
     </properties>
 
     <dependencyManagement>
@@ -81,6 +81,13 @@
             <groupId>land.oras</groupId>
             <artifactId>oras-java-sdk</artifactId>
             <version>0.2.10</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <scope>provided</scope>
+            <version>1</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
