@@ -80,7 +80,7 @@
         <dependency>
             <groupId>land.oras</groupId>
             <artifactId>oras-java-sdk</artifactId>
-            <version>0.2.10</version>
+            <version>0.2.11</version>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
