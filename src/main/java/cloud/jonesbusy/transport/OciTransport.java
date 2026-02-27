@@ -188,19 +188,24 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         //try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
             try {
                 //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
-                Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()))
-                        .withFileAnnotations(fileName, Map.of("io.goharbor.artifact.v1alpha1.icon", ""));
 
-                URL url = this.getClass().getResource("/maven.png");
-                Objects.requireNonNull(url, "Image resource not found");
-                Path imagePath = Paths.get(url.toURI());
-                Path imageName = imagePath.getFileName();
+                Path temp = Files.createTempFile("resource-", ".tmp");
+                try (InputStream is =
+                             getClass().getResourceAsStream("/maven.png")) {
+                    Objects.requireNonNull(is, "Resource not found: /maven.png");
+                    Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                Path imageName = temp.getFileName();
                 Objects.requireNonNull(imageName, "Image name cannot be null");
+
+                Annotations annotations = Annotations.empty()
+                        .withFileAnnotations(temp.getFileName().toString(), Map.of("io.goharbor.artifact.v1alpha1.icon", ""));
 
                 registry.pushArtifact(ContainerRef.parse(containerRef),
                         ArtifactType.from("application/vnd.maven.artifact.v1"),
                         annotations,
-                        LocalPath.of(dataPath, fileContentType), LocalPath.of(imagePath, "image/png")
+                        LocalPath.of(dataPath, fileContentType), LocalPath.of(temp, "image/png")
                 );
                 logger.debug("Uploaded artifact from " + dataPath + " to " + containerRef);
             }
