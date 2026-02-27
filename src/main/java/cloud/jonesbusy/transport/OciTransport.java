@@ -169,13 +169,29 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
         String fileName = dataPath.getFileName().toString();
         logger.debug("Claas: " + task.getClass());
         String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
+
+        String fileContentType = Files.probeContentType(dataPath);
+
+        // Determine from extension if content type is null (pom.xml or jar. If not use binary)
+        if (fileContentType == null) {
+            if (fileName.endsWith(".pom")) {
+                fileContentType = "text/xml";
+            }
+            else if (fileName.endsWith(".jar")) {
+                fileContentType = "application/java-archive";
+            }
+            else {
+                fileContentType = "application/octet-stream";
+            }
+        }
+
         //try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
             try {
                 //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
                 Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()))
                         .withFileAnnotations(fileName, Map.of("io.goharbor.artifact.v1alpha1.icon", ""));
 
-                URL url = this.getClass().getResource("/maven.svg");
+                URL url = this.getClass().getResource("/maven.png");
                 Objects.requireNonNull(url, "Image resource not found");
                 Path imagePath = Paths.get(url.toURI());
                 Path imageName = imagePath.getFileName();
@@ -184,7 +200,7 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
                 registry.pushArtifact(ContainerRef.parse(containerRef),
                         ArtifactType.from("application/vnd.maven.artifact.v1"),
                         annotations,
-                        LocalPath.of(dataPath), LocalPath.of(imagePath, "image/png")
+                        LocalPath.of(dataPath, fileContentType), LocalPath.of(imagePath, "image/png")
                 );
                 logger.debug("Uploaded artifact from " + dataPath + " to " + containerRef);
             }
