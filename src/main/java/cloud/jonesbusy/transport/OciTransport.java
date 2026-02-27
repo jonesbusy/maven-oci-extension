@@ -23,11 +23,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Transporter for OCI repositories.
@@ -163,13 +166,26 @@ public class OciTransport extends AbstractTransporter implements HttpTransporter
     protected void implPut(PutTask task) throws Exception {
         logger.debug("Putting " + task.getLocation());
         Path dataPath = task.getDataPath();
+        String fileName = dataPath.getFileName().toString();
         logger.debug("Claas: " + task.getClass());
         String containerRef = "%s/%s".formatted(baseUri, task.getLocation());
         //try (FileUtils.TempFile tempFile = FileUtils.newTempFile()) {
             try {
                 //utilPut(task, Files.newOutputStream(tempFile.getPath()), true);
-                Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()));
-                registry.pushArtifact(ContainerRef.parse(containerRef), ArtifactType.from("application/vnd.maven.artifact.v1"), annotations, LocalPath.of(dataPath));
+                Annotations annotations = Annotations.ofManifest(Map.of(Const.ANNOTATION_TITLE, dataPath.getFileName().toString()))
+                        .withFileAnnotations(fileName, Map.of("io.goharbor.artifact.v1alpha1.icon", ""));
+
+                URL url = this.getClass().getResource("/maven.svg");
+                Objects.requireNonNull(url, "Image resource not found");
+                Path imagePath = Paths.get(url.toURI());
+                Path imageName = imagePath.getFileName();
+                Objects.requireNonNull(imageName, "Image name cannot be null");
+
+                registry.pushArtifact(ContainerRef.parse(containerRef),
+                        ArtifactType.from("application/vnd.maven.artifact.v1"),
+                        annotations,
+                        LocalPath.of(dataPath), LocalPath.of(imagePath, "image/png")
+                );
                 logger.debug("Uploaded artifact from " + dataPath + " to " + containerRef);
             }
             catch (OrasException e) {
