@@ -72,6 +72,15 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>3.5.2</version>
+        <configuration>
+          <!-- oras-java-sdk's test-jar ships its own logback-test.xml; our config is named
+               differently so Logback's classpath scan for that literal filename doesn't see a
+               collision (and print its "occurs multiple times" warning), and this property makes
+               explicit which file backs the config regardless of classpath ordering. -->
+          <systemPropertyVariables>
+            <logback.configurationFile>oci-extension-it-logback.xml</logback.configurationFile>
+          </systemPropertyVariables>
+        </configuration>
         <executions>
           <execution>
             <goals>
