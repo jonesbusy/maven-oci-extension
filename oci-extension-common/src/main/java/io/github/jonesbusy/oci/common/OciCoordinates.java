@@ -54,10 +54,9 @@ public final class OciCoordinates {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof OciCoordinates)) {
+        if (!(o instanceof OciCoordinates that)) {
             return false;
         }
-        OciCoordinates that = (OciCoordinates) o;
         return groupId.equals(that.groupId)
                 && artifactId.equals(that.artifactId)
                 && version.equals(that.version)

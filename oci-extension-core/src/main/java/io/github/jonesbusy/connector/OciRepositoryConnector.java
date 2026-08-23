@@ -108,8 +108,6 @@ final class OciRepositoryConnector implements RepositoryConnector {
         if (artifactUploads != null && !artifactUploads.isEmpty()) {
             putArtifacts(artifactUploads);
         }
-        // maven-metadata.xml is synthesized from the registry's own tag list on resolve (see
-        // getMetadata below), so there is nothing to store here; metadata uploads are no-ops.
     }
 
     @Override
@@ -122,8 +120,6 @@ final class OciRepositoryConnector implements RepositoryConnector {
             throw new IllegalStateException("Connector for repository '" + repository.getId() + "' is closed");
         }
     }
-
-    // ---- resolve ----
 
     private void getArtifact(ArtifactDownload download) {
         Artifact artifact = download.getArtifact();
@@ -292,9 +288,6 @@ final class OciRepositoryConnector implements RepositoryConnector {
             LocalPath[] paths = new LocalPath[uploads.size()];
             for (int i = 0; i < uploads.size(); i++) {
                 Artifact artifact = uploads.get(i).getArtifact();
-                // oras-java keys per-file annotations by the uploaded file's own basename (see
-                // OCI#pushLayer), not by any name of our choosing -- so the key here must be that
-                // same basename or the annotations silently never attach to the resulting layer.
                 String fileName = uploads.get(i).getPath().getFileName().toString();
                 annotations = annotations.withFileAnnotations(
                         fileName, OciAnnotations.forArtifact(toCoordinates(artifact), fileName));

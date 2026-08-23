@@ -1,5 +1,6 @@
 package io.github.jonesbusy.it;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -35,16 +36,12 @@ class SingleModuleRoundTripIT extends ItSupport {
     void deploysAndResolvesBackTheSameJar(@TempDir Path projectDir, @TempDir Path consumerDir)
             throws IOException, MavenInvocationException {
         copyTemplate("single-module", projectDir);
-        // dependency:get must run from a project whose own coordinates differ from the target
-        // artifact: Maven recognizes "resolving the reactor's own artifact" and shortcuts to the
-        // local build output (target/classes) instead of actually hitting the remote repository,
-        // which would make this test pass without ever exercising OciRepositoryConnector.get().
         copyTemplate("resolve-only", consumerDir);
         String repositoryUrl = "it::default::oci+http://" + REGISTRY.getRegistry() + "/it";
 
         ItResult deploy =
                 runMaven(projectDir, List.of("deploy"), mapOf("altDeploymentRepository", repositoryUrl), null);
-        assertTrue(deploy.exitCode() == 0, () -> "deploy failed:\n" + deploy.output());
+        assertEquals(0, deploy.exitCode(), () -> "deploy failed:\n" + deploy.output());
 
         deleteFromDefaultLocalRepository("com.example", "single", "1.0.0");
 
@@ -53,7 +50,7 @@ class SingleModuleRoundTripIT extends ItSupport {
                 List.of("dependency:get"),
                 mapOf("artifact", "com.example:single:1.0.0:jar", "remoteRepositories", repositoryUrl),
                 null);
-        assertTrue(resolve.exitCode() == 0, () -> "resolve failed:\n" + resolve.output());
+        assertEquals(0, resolve.exitCode(), () -> "resolve failed:\n" + resolve.output());
 
         Path resolvedJar = defaultLocalRepositoryPath("com/example/single/1.0.0/single-1.0.0.jar");
         assertTrue(Files.isRegularFile(resolvedJar), () -> "expected " + resolvedJar + " to have been resolved");
@@ -64,10 +61,8 @@ class SingleModuleRoundTripIT extends ItSupport {
                 List.of("dependency:get"),
                 mapOf("artifact", "com.example:single:1.0.0:pom", "remoteRepositories", repositoryUrl),
                 null);
-        assertTrue(resolvePom.exitCode() == 0, () -> "pom resolve failed:\n" + resolvePom.output());
+        assertEquals(0, resolvePom.exitCode(), () -> "pom resolve failed:\n" + resolvePom.output());
         assertTrue(Files.isRegularFile(resolvedPom), () -> "expected " + resolvedPom + " to have been resolved");
-        // Maven 4 deploys the generated "consumer POM", not the source pom.xml byte-for-byte, so
-        // assert on its logical content rather than exact equality with the source file.
         String pomContent = Files.readString(resolvedPom, StandardCharsets.UTF_8);
         assertTrue(pomContent.contains("<artifactId>single</artifactId>"), pomContent);
         assertTrue(pomContent.contains("<version>1.0.0</version>"), pomContent);

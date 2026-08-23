@@ -1,6 +1,7 @@
 package io.github.jonesbusy.oci.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -73,15 +74,11 @@ class OciVersionCodecTest {
 
     @Test
     void literalEscapeLookingInputDoesNotCollideWithARealEscape() {
-        // "1.0.0+" encodes '+' (0x2b) as the escape "_002b".
-        // "1.0.0_002b" is a different, literal version string that happens to contain that same
-        // text; its underscore must be doubled on encode so the two never produce the same tag.
         String tagForPlus = OciVersionCodec.encode("1.0.0+");
         String tagForLiteral = OciVersionCodec.encode("1.0.0_002b");
-
         assertEquals("1.0.0_002b", tagForPlus);
         assertEquals("1.0.0__002b", tagForLiteral);
-        assertTrue(!tagForPlus.equals(tagForLiteral));
+        assertNotEquals(tagForPlus, tagForLiteral);
         assertEquals("1.0.0+", OciVersionCodec.decode(tagForPlus));
         assertEquals("1.0.0_002b", OciVersionCodec.decode(tagForLiteral));
     }

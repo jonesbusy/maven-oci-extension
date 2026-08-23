@@ -44,16 +44,10 @@ class ResolveOnlyIT extends ItSupport {
         String artifactId = "preseeded";
         String version = "3.0.0";
         String jarContent = "pre-seeded-jar-content";
-
-        // Uses the default local repository (not an empty/fresh one), since a fresh one would also
-        // make oci-extension-core itself unresolvable there; defensively clear any leftovers from a
-        // prior local run of this same test.
         deleteFromDefaultLocalRepository(groupId, artifactId, version);
         seedRegistry(scratch, groupId, artifactId, version, jarContent);
-
         copyTemplate("resolve-only", projectDir);
         String repositoryUrl = "it::default::oci+http://" + REGISTRY.getRegistry() + "/it";
-
         ItResult resolve = runMaven(
                 projectDir,
                 List.of("dependency:get"),
@@ -63,8 +57,7 @@ class ResolveOnlyIT extends ItSupport {
                         "remoteRepositories",
                         repositoryUrl),
                 null);
-        assertTrue(resolve.exitCode() == 0, () -> "resolve failed:\n" + resolve.output());
-
+        assertEquals(0, resolve.exitCode(), () -> "resolve failed:\n" + resolve.output());
         Path resolvedJar = Path.of(System.getProperty("user.home"), ".m2", "repository")
                 .resolve(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version
                         + ".jar");

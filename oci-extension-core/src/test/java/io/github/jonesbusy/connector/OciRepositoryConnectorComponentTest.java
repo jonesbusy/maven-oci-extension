@@ -1,6 +1,7 @@
 package io.github.jonesbusy.connector;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -120,7 +121,8 @@ class OciRepositoryConnectorComponentTest {
 
         connector.get(List.of(download), null);
 
-        assertTrue(download.getException() instanceof ArtifactNotFoundException, "expected ArtifactNotFoundException");
+        assertInstanceOf(
+                ArtifactNotFoundException.class, download.getException(), "expected ArtifactNotFoundException");
     }
 
     @Test
