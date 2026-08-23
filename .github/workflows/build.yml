@@ -18,8 +18,8 @@ jobs:
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@v1.20.0
         with:
-          java-distribution: graalvm
-          java-version: 21
+          java-distribution: temurin
+          java-version: 25
           maven-version: 4.0.0-rc-6
           cache-enabled: true
 
