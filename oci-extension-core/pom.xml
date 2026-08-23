@@ -10,12 +10,14 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>oci-extension-resolve</artifactId>
+    <artifactId>oci-extension-core</artifactId>
     <packaging>jar</packaging>
 
     <description>
-        Resolver SPI (TransporterFactory + RepositoryLayoutFactory) letting Maven resolve artifacts from an
-        OCI registry via oras-java. Packaged as a Maven 4 core extension (declare in .mvn/extensions.xml).
+        RepositoryConnectorFactory/RepositoryConnector for the oci:/oci+http: protocols, letting Maven both
+        resolve artifacts from and publish artifacts to an OCI registry via oras-java. Packaged as a Maven 4
+        core extension (declare in .mvn/extensions.xml). No dependency on njord -- njord (or a plain
+        altDeploymentRepository) is only an optional, user-side way to route deploys at this connector.
     </description>
 
     <dependencies>

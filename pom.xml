@@ -11,8 +11,7 @@
 
     <modules>
         <module>oci-extension-common</module>
-        <module>oci-extension-resolve</module>
-        <module>oci-extension-publisher-njord</module>
+        <module>oci-extension-core</module>
     </modules>
 
     <properties>
