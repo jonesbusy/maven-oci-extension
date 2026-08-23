@@ -19,29 +19,10 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.version>4.0.0-rc-6</maven.version>
-        <oras.version>0.8.2</oras.version>
+        <oras.version>0.8.3</oras.version>
         <junit.version>5.11.4</junit.version>
         <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>oras-java</id>
-            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-
-        <!-- For GitHub action -->
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <dependencyManagement>
         <dependencies>

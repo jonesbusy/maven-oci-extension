@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
   build:
@@ -26,5 +25,3 @@ jobs:
 
       - name: Maven build
         run: mvn --batch-mode --update-snapshots verify
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
