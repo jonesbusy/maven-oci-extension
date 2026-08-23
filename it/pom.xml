@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cloud.jonesbusy</groupId>
+        <groupId>io.github.jonesbusy</groupId>
         <artifactId>oci-extension-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -23,6 +23,8 @@
 
     <properties>
         <maven.invoker.version>3.3.0</maven.invoker.version>
+        <!-- Test-only module, nothing meaningful to publish (no src/main content). -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
@@ -33,7 +35,7 @@
         </dependency>
 
         <dependency>
-            <groupId>cloud.jonesbusy</groupId>
+            <groupId>io.github.jonesbusy</groupId>
             <artifactId>oci-extension-common</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

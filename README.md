@@ -16,7 +16,7 @@ Declare the extension in `.mvn/extensions.xml`:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.2.0 http://maven.apache.org/xsd/core-extensions-1.2.0.xsd">
     <extension>
-        <groupId>cloud.jonesbusy</groupId>
+        <groupId>io.github.jonesbusy</groupId>
         <artifactId>oci-extension-core</artifactId>
         <version>1.0-SNAPSHOT</version>
     </extension>

@@ -1,0 +1,54 @@
+name: Deploy Snapshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  MAVEN_VERSION: 4.0.0-rc-6
+  MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
+
+jobs:
+  deploy-snapshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          # Writes ~/.m2/settings.xml with a <server> block for this id, reading the actual
+          # credentials from the env vars below at deploy time (not baked into the file).
+          server-id: central-snapshots
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_CENTRAL_TOKEN
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ env.MAVEN_VERSION }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.MAVEN_VERSION }}-
+
+      - name: Install Maven ${{ env.MAVEN_VERSION }}
+        run: |
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
+          tar xzf /tmp/maven.tar.gz -C /opt
+          "$MAVEN_HOME/bin/mvn" -version
+
+      - name: Deploy snapshots to Maven Central
+        # Skips tests: the build workflow already validates every push to main, so this job's only
+        # job is to publish what was just validated.
+        run: "$MAVEN_HOME/bin/mvn --batch-mode -Dmaven.test.skip=true deploy"
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.CENTRAL_PASSWORD }}

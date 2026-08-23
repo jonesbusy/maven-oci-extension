@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cloud.jonesbusy</groupId>
+        <groupId>io.github.jonesbusy</groupId>
         <artifactId>oci-extension-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -23,7 +23,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>cloud.jonesbusy</groupId>
+            <groupId>io.github.jonesbusy</groupId>
             <artifactId>oci-extension-common</artifactId>
             <version>${project.version}</version>
         </dependency>
