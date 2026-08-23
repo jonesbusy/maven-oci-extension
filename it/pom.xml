@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cloud.jonesbusy</groupId>
+        <artifactId>oci-extension-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>it</artifactId>
+    <packaging>jar</packaging>
+
+    <description>
+        Full Maven-process-level integration tests. Each test starts a Testcontainers Zot registry,
+        installs oci-extension-common/oci-extension-core into the local repository, copies a template
+        project from src/test/resources/it/&lt;case&gt; and drives a real, separate Maven 4 process
+        against it via the maven-invoker library (not maven-invoker-plugin, since the registry's port
+        is only known once the JVM starts the container).
+    </description>
+
+    <properties>
+        <maven.invoker.version>3.3.0</maven.invoker.version>
+        <njord.version>0.9.10</njord.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>cloud.jonesbusy</groupId>
+            <artifactId>oci-extension-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-invoker</artifactId>
+            <version>${maven.invoker.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>land.oras</groupId>
+            <artifactId>oras-java-sdk</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>land.oras</groupId>
+            <artifactId>oras-java-sdk</artifactId>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

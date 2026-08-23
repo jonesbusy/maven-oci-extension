@@ -12,6 +12,7 @@
     <modules>
         <module>oci-extension-common</module>
         <module>oci-extension-core</module>
+        <module>it</module>
     </modules>
 
     <properties>
