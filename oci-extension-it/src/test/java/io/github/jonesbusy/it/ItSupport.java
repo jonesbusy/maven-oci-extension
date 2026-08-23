@@ -1,12 +1,6 @@
 package io.github.jonesbusy.it;
 
-import org.apache.maven.shared.invoker.DefaultInvocationRequest;
-import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationRequest;
-import org.apache.maven.shared.invoker.InvocationResult;
-import org.apache.maven.shared.invoker.Invoker;
-import org.apache.maven.shared.invoker.MavenInvocationException;
-import org.junit.jupiter.api.BeforeAll;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +16,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import org.apache.maven.shared.invoker.DefaultInvocationRequest;
+import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationRequest;
+import org.apache.maven.shared.invoker.InvocationResult;
+import org.apache.maven.shared.invoker.Invoker;
+import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.junit.jupiter.api.BeforeAll;
 
 /**
  * Shared harness for the Maven-process-level integration tests: locates a Maven 4.x executable,
@@ -97,11 +96,8 @@ abstract class ItSupport {
 
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBaseDirectory(repoRoot);
-        request.setGoals(List.of("install"));
-        // Exclude "it" itself (would otherwise recurse into these very integration tests); this
-        // still installs the aggregator/parent pom, which oci-extension-core's <parent> needs to
-        // resolve, in addition to oci-extension-common and oci-extension-core.
-        request.setProjects(List.of("!it"));
+        request.addArgs(List.of("install"));
+        request.setProjects(List.of("!oci-extension-it"));
         Properties properties = new Properties();
         properties.setProperty("skipTests", "true");
         request.setProperties(properties);
@@ -110,15 +106,15 @@ abstract class ItSupport {
         ItResult result = invoke(request);
         if (result.exitCode() != 0) {
             throw new IllegalStateException(
-                    "Failed to install oci-extension-common/oci-extension-core for IT setup (exit="
-                            + result.exitCode() + "):\n" + result.output());
+                    "Failed to install oci-extension-common/oci-extension-core for IT setup (exit=" + result.exitCode()
+                            + "):\n" + result.output());
         }
     }
 
     /**
      * Copies the template project at {@code it/src/test/resources/it/<name>} into {@code targetDir}.
      */
-    static Path copyTemplate(String name, Path targetDir) throws IOException {
+    static void copyTemplate(String name, Path targetDir) throws IOException {
         Path source = Path.of("src/test/resources/it", name);
         if (!Files.isDirectory(source)) {
             throw new IllegalArgumentException("No such IT template: " + source.toAbsolutePath());
@@ -135,7 +131,6 @@ abstract class ItSupport {
                 }
             }
         }
-        return targetDir;
     }
 
     /** Replaces every occurrence of {@code token} with {@code value} in {@code file}, in place. */
@@ -174,7 +169,8 @@ abstract class ItSupport {
         return runMaven(projectDir, goals, Map.of(), null);
     }
 
-    static ItResult runMaven(Path projectDir, List<String> goals, Map<String, String> systemProperties, File userSettings)
+    static ItResult runMaven(
+            Path projectDir, List<String> goals, Map<String, String> systemProperties, File userSettings)
             throws MavenInvocationException {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBaseDirectory(projectDir.toFile());

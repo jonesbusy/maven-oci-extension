@@ -1,12 +1,11 @@
 package io.github.jonesbusy.connector;
 
-import org.apache.maven.artifact.versioning.ComparableVersion;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
  * Synthesizes a GA-level {@code maven-metadata.xml} document from an OCI repository's tag list, so

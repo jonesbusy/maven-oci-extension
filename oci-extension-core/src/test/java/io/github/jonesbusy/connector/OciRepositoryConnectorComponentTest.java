@@ -1,7 +1,15 @@
 package io.github.jonesbusy.connector;
 
-import land.oras.utils.ZotUnsecureContainer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import land.oras.utils.ZotUnsecureContainer;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.metadata.DefaultMetadata;
@@ -18,16 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Exercises {@link OciRepositoryConnector} against a real registry (Testcontainers Zot, plain
@@ -46,9 +44,8 @@ class OciRepositoryConnectorComponentTest {
 
     @BeforeEach
     void createConnector() throws Exception {
-        RemoteRepository repository = new RemoteRepository.Builder(
-                        "it", "default", "oci+http://" + REGISTRY.getRegistry() + "/it")
-                .build();
+        RemoteRepository repository =
+                new RemoteRepository.Builder("it", "default", "oci+http://" + REGISTRY.getRegistry() + "/it").build();
         connector = new OciRepositoryConnectorFactory().newInstance(null, repository);
     }
 
@@ -159,7 +156,8 @@ class OciRepositoryConnectorComponentTest {
         }
 
         Metadata metadata = new DefaultMetadata(groupId, artifactId, "maven-metadata.xml", Metadata.Nature.RELEASE);
-        MetadataDownload download = new MetadataDownload(metadata, "test", tempDir.resolve("maven-metadata.xml"), "warn");
+        MetadataDownload download =
+                new MetadataDownload(metadata, "test", tempDir.resolve("maven-metadata.xml"), "warn");
         connector.get(null, List.of(download));
 
         assertNoException(download);
@@ -170,7 +168,11 @@ class OciRepositoryConnectorComponentTest {
     }
 
     private static ArtifactDownload download(Artifact artifact, Path target) {
-        return new ArtifactDownload().setArtifact(artifact).setRequestContext("test").setPath(target).setChecksumPolicy("warn");
+        return new ArtifactDownload()
+                .setArtifact(artifact)
+                .setRequestContext("test")
+                .setPath(target)
+                .setChecksumPolicy("warn");
     }
 
     private Path writeFile(String name, String content) throws IOException {

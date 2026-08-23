@@ -1,19 +1,18 @@
 package io.github.jonesbusy.it;
 
-import land.oras.utils.ZotUnsecureContainer;
-import org.apache.maven.shared.invoker.MavenInvocationException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import land.oras.utils.ZotUnsecureContainer;
+import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Deploys a single-module project directly to an oci+http:// repository and then resolves it back,
@@ -43,7 +42,8 @@ class SingleModuleRoundTripIT extends ItSupport {
         copyTemplate("resolve-only", consumerDir);
         String repositoryUrl = "it::default::oci+http://" + REGISTRY.getRegistry() + "/it";
 
-        ItResult deploy = runMaven(projectDir, List.of("deploy"), mapOf("altDeploymentRepository", repositoryUrl), null);
+        ItResult deploy =
+                runMaven(projectDir, List.of("deploy"), mapOf("altDeploymentRepository", repositoryUrl), null);
         assertTrue(deploy.exitCode() == 0, () -> "deploy failed:\n" + deploy.output());
 
         deleteFromDefaultLocalRepository("com.example", "single", "1.0.0");

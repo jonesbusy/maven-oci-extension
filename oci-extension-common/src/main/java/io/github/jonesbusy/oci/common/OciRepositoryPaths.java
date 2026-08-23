@@ -1,9 +1,9 @@
 package io.github.jonesbusy.oci.common;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Locale;
 import java.util.regex.Pattern;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Maps Maven groupId/artifactId/version onto an OCI repository path + tag: one OCI repository per

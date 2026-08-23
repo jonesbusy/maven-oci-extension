@@ -1,9 +1,8 @@
 package io.github.jonesbusy.oci.common;
 
-import land.oras.utils.Const;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+import land.oras.utils.Const;
 
 /**
  * Custom annotation keys recorded on every layer/manifest we push, so the resolve side can

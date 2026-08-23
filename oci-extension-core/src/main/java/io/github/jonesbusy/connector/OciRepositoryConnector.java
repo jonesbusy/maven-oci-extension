@@ -6,34 +6,6 @@ import io.github.jonesbusy.oci.common.OciCoordinates;
 import io.github.jonesbusy.oci.common.OciMediaTypes;
 import io.github.jonesbusy.oci.common.OciRepositoryPaths;
 import io.github.jonesbusy.oci.common.OciVersionCodec;
-
-import land.oras.Annotations;
-import land.oras.ArtifactType;
-import land.oras.ContainerRef;
-import land.oras.Layer;
-import land.oras.LocalPath;
-import land.oras.Manifest;
-import land.oras.ManifestDescriptor;
-import land.oras.Referrers;
-import land.oras.Registry;
-import land.oras.Tags;
-import land.oras.exception.OrasException;
-
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.metadata.Metadata;
-import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.spi.connector.ArtifactDownload;
-import org.eclipse.aether.spi.connector.ArtifactUpload;
-import org.eclipse.aether.spi.connector.MetadataDownload;
-import org.eclipse.aether.spi.connector.MetadataUpload;
-import org.eclipse.aether.spi.connector.RepositoryConnector;
-import org.eclipse.aether.transfer.ArtifactNotFoundException;
-import org.eclipse.aether.transfer.ArtifactTransferException;
-import org.eclipse.aether.transfer.MetadataNotFoundException;
-import org.eclipse.aether.transfer.MetadataTransferException;
-import org.eclipse.aether.transfer.NoRepositoryConnectorException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +23,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import land.oras.Annotations;
+import land.oras.ArtifactType;
+import land.oras.ContainerRef;
+import land.oras.Layer;
+import land.oras.LocalPath;
+import land.oras.Manifest;
+import land.oras.ManifestDescriptor;
+import land.oras.Referrers;
+import land.oras.Registry;
+import land.oras.Tags;
+import land.oras.exception.OrasException;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.metadata.Metadata;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.spi.connector.ArtifactDownload;
+import org.eclipse.aether.spi.connector.ArtifactUpload;
+import org.eclipse.aether.spi.connector.MetadataDownload;
+import org.eclipse.aether.spi.connector.MetadataUpload;
+import org.eclipse.aether.spi.connector.RepositoryConnector;
+import org.eclipse.aether.transfer.ArtifactNotFoundException;
+import org.eclipse.aether.transfer.ArtifactTransferException;
+import org.eclipse.aether.transfer.MetadataNotFoundException;
+import org.eclipse.aether.transfer.MetadataTransferException;
+import org.eclipse.aether.transfer.NoRepositoryConnectorException;
 
 /**
  * {@link RepositoryConnector} for the {@code oci}/{@code oci+http} protocols.
@@ -105,7 +102,8 @@ final class OciRepositoryConnector implements RepositoryConnector {
 
     @Override
     public void put(
-            Collection<? extends ArtifactUpload> artifactUploads, Collection<? extends MetadataUpload> metadataUploads) {
+            Collection<? extends ArtifactUpload> artifactUploads,
+            Collection<? extends MetadataUpload> metadataUploads) {
         checkOpen();
         if (artifactUploads != null && !artifactUploads.isEmpty()) {
             putArtifacts(artifactUploads);
@@ -217,7 +215,8 @@ final class OciRepositoryConnector implements RepositoryConnector {
                 download.setException(new MetadataNotFoundException(metadata, repository));
                 return;
             }
-            String xml = MavenMetadataXml.build(metadata.getGroupId(), metadata.getArtifactId(), versions, Instant.now());
+            String xml =
+                    MavenMetadataXml.build(metadata.getGroupId(), metadata.getArtifactId(), versions, Instant.now());
             writeAtomically(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), download.getPath());
         } catch (OrasException e) {
             if (isNotFound(e)) {
@@ -271,7 +270,9 @@ final class OciRepositoryConnector implements RepositoryConnector {
             // Exceptions already set on primaryUploads; a referrer needs a primary manifest to
             // attach to, so fail secondaries too rather than leaving them silently unpushed.
             ArtifactTransferException ex = new ArtifactTransferException(
-                    first, repository, "Primary artifact push failed for " + gavKey + "; skipping classified artifacts");
+                    first,
+                    repository,
+                    "Primary artifact push failed for " + gavKey + "; skipping classified artifacts");
             secondaryUploads.forEach(upload -> upload.setException(ex));
             return;
         }
@@ -299,7 +300,8 @@ final class OciRepositoryConnector implements RepositoryConnector {
                         fileName, OciAnnotations.forArtifact(toCoordinates(artifact), fileName));
                 paths[i] = LocalPath.of(uploads.get(i).getPath(), OciMediaTypes.forExtension(artifact.getExtension()));
             }
-            Manifest pushed = registry.pushArtifact(primary, ArtifactType.from(OciArtifactTypes.PRIMARY), annotations, paths);
+            Manifest pushed =
+                    registry.pushArtifact(primary, ArtifactType.from(OciArtifactTypes.PRIMARY), annotations, paths);
             primaryManifestCache.put(gavKey, pushed);
             return true;
         } catch (Exception e) {

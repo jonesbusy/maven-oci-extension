@@ -1,8 +1,8 @@
 package io.github.jonesbusy.oci.common;
 
-import java.util.Objects;
-
 import static java.util.Objects.requireNonNull;
+
+import java.util.Objects;
 
 /**
  * Plain (Aether-free) representation of the Maven coordinates of one artifact file,
@@ -72,7 +72,6 @@ public final class OciCoordinates {
 
     @Override
     public String toString() {
-        return groupId + ":" + artifactId + ":" + version
-                + (hasClassifier() ? ":" + classifier : "") + "@" + extension;
+        return groupId + ":" + artifactId + ":" + version + (hasClassifier() ? ":" + classifier : "") + "@" + extension;
     }
 }

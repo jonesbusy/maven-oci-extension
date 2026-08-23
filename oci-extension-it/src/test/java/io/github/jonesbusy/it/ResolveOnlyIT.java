@@ -1,33 +1,30 @@
 package io.github.jonesbusy.it;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.jonesbusy.oci.common.OciAnnotations;
 import io.github.jonesbusy.oci.common.OciArtifactTypes;
 import io.github.jonesbusy.oci.common.OciCoordinates;
 import io.github.jonesbusy.oci.common.OciMediaTypes;
 import io.github.jonesbusy.oci.common.OciRepositoryPaths;
-
-import land.oras.Annotations;
-import land.oras.ArtifactType;
-import land.oras.ContainerRef;
-import land.oras.LocalPath;
-import land.oras.Registry;
-import land.oras.utils.ZotUnsecureContainer;
-
-import org.apache.maven.shared.invoker.MavenInvocationException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import land.oras.Annotations;
+import land.oras.ArtifactType;
+import land.oras.ContainerRef;
+import land.oras.LocalPath;
+import land.oras.Registry;
+import land.oras.utils.ZotUnsecureContainer;
+import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Pre-seeds the registry directly via oras-java (bypassing OciRepositoryConnector.put entirely) and
@@ -60,7 +57,11 @@ class ResolveOnlyIT extends ItSupport {
         ItResult resolve = runMaven(
                 projectDir,
                 List.of("dependency:get"),
-                mapOf("artifact", groupId + ":" + artifactId + ":" + version + ":jar", "remoteRepositories", repositoryUrl),
+                mapOf(
+                        "artifact",
+                        groupId + ":" + artifactId + ":" + version + ":jar",
+                        "remoteRepositories",
+                        repositoryUrl),
                 null);
         assertTrue(resolve.exitCode() == 0, () -> "resolve failed:\n" + resolve.output());
 
@@ -79,16 +80,23 @@ class ResolveOnlyIT extends ItSupport {
         Files.writeString(jarFile, jarContent, StandardCharsets.UTF_8);
 
         Registry registry = Registry.builder().withInsecure(true).defaults().build();
-        ContainerRef ref = ContainerRef.parse(REGISTRY.getRegistry() + "/it/" + OciRepositoryPaths.repository(groupId, artifactId)
-                + ":" + OciRepositoryPaths.tag(version));
+        ContainerRef ref = ContainerRef.parse(REGISTRY.getRegistry() + "/it/"
+                + OciRepositoryPaths.repository(groupId, artifactId) + ":" + OciRepositoryPaths.tag(version));
 
         OciCoordinates pomCoordinates = new OciCoordinates(groupId, artifactId, version, null, "pom");
         OciCoordinates jarCoordinates = new OciCoordinates(groupId, artifactId, version, null, "jar");
-        Map<String, String> pomAnnotations = OciAnnotations.forArtifact(pomCoordinates, pomFile.getFileName().toString());
-        Map<String, String> jarAnnotations = OciAnnotations.forArtifact(jarCoordinates, jarFile.getFileName().toString());
+        Map<String, String> pomAnnotations =
+                OciAnnotations.forArtifact(pomCoordinates, pomFile.getFileName().toString());
+        Map<String, String> jarAnnotations =
+                OciAnnotations.forArtifact(jarCoordinates, jarFile.getFileName().toString());
 
-        Annotations annotations = Annotations.ofManifest(
-                        Map.of(OciAnnotations.GROUP_ID, groupId, OciAnnotations.ARTIFACT_ID, artifactId, OciAnnotations.VERSION, version))
+        Annotations annotations = Annotations.ofManifest(Map.of(
+                        OciAnnotations.GROUP_ID,
+                        groupId,
+                        OciAnnotations.ARTIFACT_ID,
+                        artifactId,
+                        OciAnnotations.VERSION,
+                        version))
                 .withFileAnnotations(pomFile.getFileName().toString(), pomAnnotations)
                 .withFileAnnotations(jarFile.getFileName().toString(), jarAnnotations);
 
