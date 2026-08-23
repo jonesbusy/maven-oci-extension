@@ -291,7 +291,10 @@ final class OciRepositoryConnector implements RepositoryConnector {
             LocalPath[] paths = new LocalPath[uploads.size()];
             for (int i = 0; i < uploads.size(); i++) {
                 Artifact artifact = uploads.get(i).getArtifact();
-                String fileName = fileName(artifact);
+                // oras-java keys per-file annotations by the uploaded file's own basename (see
+                // OCI#pushLayer), not by any name of our choosing -- so the key here must be that
+                // same basename or the annotations silently never attach to the resulting layer.
+                String fileName = uploads.get(i).getPath().getFileName().toString();
                 annotations = annotations.withFileAnnotations(
                         fileName, OciAnnotations.forArtifact(toCoordinates(artifact), fileName));
                 paths[i] = LocalPath.of(uploads.get(i).getPath(), OciMediaTypes.forExtension(artifact.getExtension()));
@@ -311,7 +314,7 @@ final class OciRepositoryConnector implements RepositoryConnector {
         Artifact artifact = upload.getArtifact();
         try {
             OciCoordinates coordinates = toCoordinates(artifact);
-            String fileName = fileName(artifact);
+            String fileName = upload.getPath().getFileName().toString();
             Map<String, String> fileAnnotations = OciAnnotations.forArtifact(coordinates, fileName);
             Annotations annotations =
                     Annotations.ofManifest(fileAnnotations).withFileAnnotations(fileName, fileAnnotations);
@@ -344,12 +347,6 @@ final class OciRepositoryConnector implements RepositoryConnector {
     private static boolean isPrimary(Artifact artifact) {
         String classifier = artifact.getClassifier();
         return classifier == null || classifier.isEmpty();
-    }
-
-    private static String fileName(Artifact artifact) {
-        String classifier = artifact.getClassifier();
-        return artifact.getArtifactId() + "-" + artifact.getVersion()
-                + (classifier == null || classifier.isEmpty() ? "" : "-" + classifier) + "." + artifact.getExtension();
     }
 
     private static String gavKey(String groupId, String artifactId, String version) {
