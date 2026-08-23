@@ -21,7 +21,7 @@ jobs:
         with:
           java-distribution: graalvm
           java-version: 21
-          maven-version: 3.9.9
+          maven-version: 4.0.0-rc-6
           cache-enabled: true
 
       - name: Maven build

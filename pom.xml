@@ -5,16 +5,44 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cloud.jonesbusy</groupId>
-    <artifactId>oci-extension</artifactId>
+    <artifactId>oci-extension-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>oci-extension-common</module>
+        <module>oci-extension-resolve</module>
+        <module>oci-extension-publisher-njord</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.version>4.0.0-rc-6</maven.version>
+        <oras.version>0.8.2</oras.version>
+        <junit.version>5.11.4</junit.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>oras-java</id>
+            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- For GitHub action -->
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -48,57 +76,44 @@
                 <artifactId>maven-settings</artifactId>
                 <version>${maven.version}</version>
             </dependency>
+            <dependency>
+                <groupId>land.oras</groupId>
+                <artifactId>oras-java-sdk</artifactId>
+                <version>${oras.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>land.oras</groupId>
+                <artifactId>oras-java-sdk</artifactId>
+                <version>${oras.version}</version>
+                <classifier>tests</classifier>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-        <repositories>
-        <repository>
-            <id>oras-java</id>
-            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-
-        <!-- For GitHub action -->
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- Oras SDK -->
-        <dependency>
-            <groupId>land.oras</groupId>
-            <artifactId>oras-java-sdk</artifactId>
-            <version>0.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <scope>provided</scope>
-            <version>1</version>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
 
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.15.2</version>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -129,23 +144,21 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.5.6</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.eclipse.sisu</groupId>
+                    <artifactId>sisu-maven-plugin</artifactId>
+                    <version>1.1.0</version>
+                    <executions>
+                        <execution>
+                            <id>generate-index</id>
+                            <goals>
+                                <goal>main-index</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.eclipse.sisu</groupId>
-                <artifactId>sisu-maven-plugin</artifactId>
-                <version>1.1.0</version>
-                <executions>
-                    <execution>
-                        <id>generate-index</id>
-                        <goals>
-                            <goal>main-index</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 
 </project>
