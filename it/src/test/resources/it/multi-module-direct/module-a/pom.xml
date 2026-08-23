@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.example</groupId>
-        <artifactId>multi-parent</artifactId>
+        <artifactId>multi-parent-direct</artifactId>
         <version>1.0.0</version>
     </parent>
 

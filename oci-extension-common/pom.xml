@@ -14,9 +14,9 @@
     <packaging>jar</packaging>
 
     <description>
-        Maven-coordinate to OCI-registry mapping shared by both the resolve (oci-extension-resolve) and
-        publish (oci-extension-publisher-njord) sides: repository/tag naming, the annotation scheme used to
-        identify layers/referrers, and media-type mapping. Has no dependency on Aether or njord.
+        Maven-coordinate to OCI-registry mapping used by oci-extension-core for both resolve and
+        publish: repository/tag naming, the annotation scheme used to identify layers/referrers, and
+        media-type mapping. Has no dependency on Aether.
     </description>
 
     <dependencies>

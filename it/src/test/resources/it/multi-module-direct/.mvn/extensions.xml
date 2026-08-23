@@ -7,9 +7,4 @@
         <artifactId>oci-extension-core</artifactId>
         <version>1.0-SNAPSHOT</version>
     </extension>
-    <extension>
-        <groupId>eu.maveniverse.maven.njord</groupId>
-        <artifactId>extension3</artifactId>
-        <version>0.9.10</version>
-    </extension>
 </extensions>

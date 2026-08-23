@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>multi-parent-rf</artifactId>
+    <artifactId>multi-parent-direct</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
@@ -19,12 +19,5 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>my-oci</id>
-            <url>njord:</url>
-        </repository>
-    </distributionManagement>
 
 </project>

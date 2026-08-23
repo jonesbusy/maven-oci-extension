@@ -23,7 +23,6 @@
 
     <properties>
         <maven.invoker.version>3.3.0</maven.invoker.version>
-        <njord.version>0.9.10</njord.version>
     </properties>
 
     <dependencies>

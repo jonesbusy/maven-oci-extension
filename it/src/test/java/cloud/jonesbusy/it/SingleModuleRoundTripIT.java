@@ -16,9 +16,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Deploys a single-module project directly to an oci+http:// repository (no njord involved) and
- * then resolves it back, proving the connector's put()/get() round-trip through a real Maven 4
- * process rather than a direct oras-java call.
+ * Deploys a single-module project directly to an oci+http:// repository and then resolves it back,
+ * proving the connector's put()/get() round-trip through a real Maven 4 process rather than a
+ * direct oras-java call.
  * <p>
  * Resolution uses the default local repository (not an empty/fresh one) because a fresh repository
  * would also make oci-extension-core itself unresolvable there -- it only exists as a SNAPSHOT in
