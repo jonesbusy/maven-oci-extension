@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xmlns="http://maven.apache.org/POM/4.1.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
+    <modelVersion>4.1.0</modelVersion>
 
     <groupId>io.github.jonesbusy</groupId>
     <artifactId>oci-extension-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>oci-extension-common</module>
-        <module>oci-extension-core</module>
-        <module>it</module>
-    </modules>
+    <subprojects>
+        <subproject>oci-extension-common</subproject>
+        <subproject>oci-extension-core</subproject>
+        <subproject>oci-extension-it</subproject>
+    </subprojects>
 
-    <!--
-        SNAPSHOTs only for now, deployed from main by .github/workflows/deploy-snapshots.yml. Plain
-        <repository> is deliberately not set: no release deployment is set up yet, so a mvn deploy of
-        a non-SNAPSHOT version should fail loudly on "no distributionManagement" rather than silently
-        try to push a release build to a snapshot-only repository.
-    -->
     <distributionManagement>
         <snapshotRepository>
             <id>central-snapshots</id>

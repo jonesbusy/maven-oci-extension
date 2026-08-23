@@ -1,26 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>io.github.jonesbusy</groupId>
-        <artifactId>oci-extension-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-
+         xmlns="http://maven.apache.org/POM/4.1.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
+    <modelVersion>4.1.0</modelVersion>
+    <parent/>
     <artifactId>oci-extension-core</artifactId>
     <packaging>jar</packaging>
-
-    <description>
-        RepositoryConnectorFactory/RepositoryConnector for the oci:/oci+http: protocols, letting Maven both
-        resolve artifacts from and publish artifacts to an OCI registry via oras-java. Packaged as a Maven 4
-        core extension (declare in .mvn/extensions.xml). Point distributionManagement (or
-        -DaltDeploymentRepository) at an oci+http://... or oci://... URL and `mvn deploy` publishes directly;
-        no other tooling required.
-    </description>
-
     <dependencies>
         <dependency>
             <groupId>io.github.jonesbusy</groupId>

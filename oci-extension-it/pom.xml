@@ -1,29 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xmlns="http://maven.apache.org/POM/4.1.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 http://maven.apache.org/xsd/maven-4.1.0.xsd">
+    <modelVersion>4.1.0</modelVersion>
 
-    <parent>
-        <groupId>io.github.jonesbusy</groupId>
-        <artifactId>oci-extension-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+    <parent/>
 
-    <artifactId>it</artifactId>
+    <artifactId>oci-extension-it</artifactId>
     <packaging>jar</packaging>
 
-    <description>
-        Full Maven-process-level integration tests. Each test starts a Testcontainers Zot registry,
-        installs oci-extension-common/oci-extension-core into the local repository, copies a template
-        project from src/test/resources/it/&lt;case&gt; and drives a real, separate Maven 4 process
-        against it via the maven-invoker library (not maven-invoker-plugin, since the registry's port
-        is only known once the JVM starts the container).
-    </description>
 
     <properties>
         <maven.invoker.version>3.3.0</maven.invoker.version>
-        <!-- Test-only module, nothing meaningful to publish (no src/main content). -->
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
