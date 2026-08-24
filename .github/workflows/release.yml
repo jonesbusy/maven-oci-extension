@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MAVEN_VERSION: 4.0.0-rc-6
+  MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          # Writes ~/.m2/settings.xml with a <server id="central"> block, matching the
+          # publishingServerId used by central-publishing-maven-plugin's "release" profile config.
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_CENTRAL_TOKEN
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ env.MAVEN_VERSION }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.MAVEN_VERSION }}-
+
+      - name: Install Maven ${{ env.MAVEN_VERSION }}
+        run: |
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
+          tar xzf /tmp/maven.tar.gz -C /opt
+          "$MAVEN_HOME/bin/mvn" -version
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config gpg.format openpgp
+          git config commit.gpgsign true
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Setup SSH
+        # release:prepare pushes the version-bump commits and tag over the scm connection, which is
+        # an SSH URL (git@github.com:...).
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.RELEASE_SSH_KEY }}
+
+      - name: Maven release
+        run: "$MAVEN_HOME/bin/mvn --batch-mode -DskipTests -Darguments=\"-DskipTests\" release:prepare release:perform"
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.CENTRAL_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Close release draft
+        # release-drafter (see release-drafter.yml) keeps a draft release up to date as PRs merge to
+        # main. There's nothing to build/attach here -- release:perform already published the jars to
+        # Maven Central above -- so all that's left is to publish that existing draft (flip draft to
+        # false) now that the version it describes has actually been released.
+        run: |
+          draft_id=$(gh api "/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
+          if [[ -z "$draft_id" ]]; then
+            echo "No draft release found to close" >&2
+            exit 1
+          fi
+          echo "Closing draft release $draft_id"
+          gh api -X PATCH "/repos/${{ github.repository }}/releases/$draft_id" -F draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -6,6 +6,31 @@
   <artifactId>oci-extension-parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <description>A Maven 4 core extension that resolves artifacts from, and publishes artifacts to, an OCI registry via oras-java.</description>
+  <url>https://github.com/jonesbusy/maven-oci-extension</url>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Valentin Delaye</name>
+      <email>jonesbusy@users.noreply.github.com</email>
+      <url>https://github.com/jonesbusy</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:jonesbusy/maven-oci-extension.git</connection>
+    <developerConnection>scm:git:git@github.com:jonesbusy/maven-oci-extension.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/jonesbusy/maven-oci-extension</url>
+  </scm>
 
   <distributionManagement>
     <snapshotRepository>
@@ -31,6 +56,12 @@
     <!-- Code formatting/check -->
     <spotless-maven-plugin.version>3.9.0</spotless-maven-plugin.version>
     <palantir.java.format.version>2.74.0</palantir.java.format.version>
+    <!-- Release -->
+    <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
+    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -201,6 +232,79 @@
             </execution>
           </executions>
         </plugin>
+
+        <!-- Release: only activated via the "release" profile below, never in day-to-day builds. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>${maven-release-plugin.version}</version>
+          <configuration>
+            <tagNameFormat>@{project.version}</tagNameFormat>
+            <scmCommentPrefix>[ci skip]</scmCommentPrefix>
+            <releaseProfiles>release</releaseProfiles>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${maven-gpg-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+              <phase>verify</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${maven-source-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+              <phase>verify</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>attach-javadoc</id>
+              <goals>
+                <goal>javadoc</goal>
+                <goal>jar</goal>
+              </goals>
+              <phase>verify</phase>
+              <configuration>
+                <show>public</show>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>${central-publishing-maven-plugin.version}</version>
+          <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central</publishingServerId>
+            <autoPublish>true</autoPublish>
+            <waitUntil>published</waitUntil>
+            <!-- 2 hours. Default is 30 minutes which is too short. -->
+            <waitMaxTime>7200</waitMaxTime>
+            <!-- Default is 5 seconds, too short and increases risk of a request failing. -->
+            <waitPollingInterval>30</waitPollingInterval>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -212,6 +316,33 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- Activated by maven-release-plugin (releaseProfiles=release above) during release:perform. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <subprojects>
     <subproject>oci-extension-common</subproject>
