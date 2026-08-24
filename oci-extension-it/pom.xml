@@ -5,8 +5,8 @@
   <parent />
 
   <artifactId>oci-extension-it</artifactId>
-  <name>Maven OCI extension integration tests</name>
   <packaging>jar</packaging>
+  <name>Maven OCI extension integration tests</name>
 
   <properties>
     <maven.invoker.version>3.3.0</maven.invoker.version>

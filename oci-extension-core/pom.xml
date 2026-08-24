@@ -3,8 +3,8 @@
   <modelVersion>4.1.0</modelVersion>
   <parent />
   <artifactId>oci-extension-core</artifactId>
-  <name>Maven OCI extension core</name>
   <packaging>jar</packaging>
+  <name>Maven OCI extension core</name>
   <dependencies>
     <dependency>
       <groupId>io.github.jonesbusy</groupId>
