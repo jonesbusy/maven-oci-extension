@@ -18,7 +18,7 @@ Declare the extension in `.mvn/extensions.xml`:
     <extension>
         <groupId>io.github.jonesbusy</groupId>
         <artifactId>oci-extension-core</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>VERSION</version>
     </extension>
 </extensions>
 ```
