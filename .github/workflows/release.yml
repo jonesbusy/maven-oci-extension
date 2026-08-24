@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: read
@@ -44,45 +46,36 @@ jobs:
           tar xzf /tmp/maven.tar.gz -C /opt
           "$MAVEN_HOME/bin/mvn" -version
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config gpg.format openpgp
-          git config commit.gpgsign true
-
       - name: Import GPG key
+        # Only for artifact signing (maven-gpg-plugin, "release" profile) -- there's no git commit or
+        # tag being created by this workflow, so no git-signing setup is needed.
         uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GPG_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
 
-      - name: Setup SSH
-        # release:prepare pushes the version-bump commits and tag over the scm connection, which is
-        # an SSH URL (git@github.com:...).
-        uses: webfactory/ssh-agent@v0.10.0
-        with:
-          ssh-private-key: ${{ secrets.RELEASE_SSH_KEY }}
-
-      - name: Maven release
-        run: "$MAVEN_HOME/bin/mvn --batch-mode -DskipTests -Darguments=\"-DskipTests\" release:prepare release:perform"
+      - name: Deploy release
+        # CI-friendly version (https://maven.apache.org/guides/mini/guide-maven-ci-friendly.html):
+        # the tag that triggered this workflow *is* the version to release, overriding the
+        # 0.0.1-SNAPSHOT default from .mvn/maven.config. No release:prepare/perform -- the tag
+        # already exists (it's what triggered this run), so there's no commit/tag/push left to do.
+        run: "$MAVEN_HOME/bin/mvn --batch-mode -Drevision=${{ github.ref_name }} -Prelease -DskipTests deploy"
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.CENTRAL_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Close release draft
         # release-drafter (see release-drafter.yml) keeps a draft release up to date as PRs merge to
-        # main. There's nothing to build/attach here -- release:perform already published the jars to
-        # Maven Central above -- so all that's left is to publish that existing draft (flip draft to
-        # false) now that the version it describes has actually been released.
+        # main. There's nothing to build/attach here -- the deploy step above already published the
+        # jars to Maven Central -- so all that's left is to publish that existing draft (flip draft to
+        # false) now that the version it describes has actually been released. If the release was
+        # instead triggered by publishing the draft directly from the GitHub UI, it won't be a draft
+        # anymore by the time this runs, so there's nothing to do.
         run: |
           draft_id=$(gh api "/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
           if [[ -z "$draft_id" ]]; then
-            echo "No draft release found to close" >&2
-            exit 1
+            echo "No draft release found to close, nothing to do"
+            exit 0
           fi
           echo "Closing draft release $draft_id"
           gh api -X PATCH "/repos/${{ github.repository }}/releases/$draft_id" -F draft=false
