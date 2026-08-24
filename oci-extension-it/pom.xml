@@ -5,6 +5,7 @@
   <parent />
 
   <artifactId>oci-extension-it</artifactId>
+  <name>Maven OCI extension integration tests</name>
   <packaging>jar</packaging>
 
   <properties>

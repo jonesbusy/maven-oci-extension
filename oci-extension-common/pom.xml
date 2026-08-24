@@ -3,6 +3,7 @@
   <modelVersion>4.1.0</modelVersion>
   <parent />
   <artifactId>oci-extension-common</artifactId>
+  <name>Maven OCI extension common</name>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>

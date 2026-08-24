@@ -4,12 +4,9 @@
 
   <groupId>io.github.jonesbusy</groupId>
   <artifactId>oci-extension-parent</artifactId>
-  <!-- CI-friendly version (https://maven.apache.org/guides/mini/guide-maven-ci-friendly.html):
-       defaults to 0.0.1-SNAPSHOT via .mvn/maven.config for local/day-to-day builds; the release
-       workflow overrides it with -Drevision=<tag> on the command line. -->
   <version>${revision}</version>
   <packaging>pom</packaging>
-  <name>${project.groupId}:${project.artifactId}</name>
+  <name>Maven OCI extension parent</name>
   <description>A Maven 4 core extension that resolves artifacts from, and publishes artifacts to, an OCI registry via oras-java.</description>
   <url>https://github.com/jonesbusy/maven-oci-extension</url>
 

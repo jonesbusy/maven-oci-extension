@@ -3,6 +3,7 @@
   <modelVersion>4.1.0</modelVersion>
   <parent />
   <artifactId>oci-extension-core</artifactId>
+  <name>Maven OCI extension core</name>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
@@ -32,9 +33,6 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <scope>provided</scope>
-      <!-- Only needed to compile against Maven's own APIs; the real Maven process supplies its own
-           SLF4J provider at runtime regardless, and pulling this in ourselves just fights with
-           logback-classic for which provider wins on the test classpath. -->
       <exclusions>
         <exclusion>
           <groupId>org.apache.maven</groupId>
