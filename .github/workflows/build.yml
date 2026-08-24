@@ -14,8 +14,6 @@ permissions:
 env:
   MAVEN_VERSION: 4.0.0-rc-6
   MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
-  # Read directly by Maven4Locator in the it module's IT harness, so the child Maven processes it
-  # spawns use this exact install too rather than whatever "mvn" happens to resolve first on PATH.
   OCI_IT_MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
 
 jobs:
@@ -55,18 +53,10 @@ jobs:
             ${{ runner.os }}-maven-${{ env.MAVEN_VERSION }}-
 
       - name: Install Maven ${{ env.MAVEN_VERSION }}
-        # Installed directly from the official Apache archive rather than a third-party setup
-        # action: every deploy/resolve plugin was failing with NoSuchMethodError on
-        # org.eclipse.aether.spi.connector.Artifact{Upload,Download}.getPath() -- a method that has
-        # existed since resolver 2.0.0 and is genuinely present in the official 4.0.0-rc-6
-        # distribution -- which only makes sense if the runner was actually running some other,
-        # older Maven install (e.g. one preinstalled on the runner image) rather than this one.
         run: |
           curl -fsSL "https://archive.apache.org/dist/maven/maven-4/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
           tar xzf /tmp/maven.tar.gz -C /opt
           "$MAVEN_HOME/bin/mvn" -version
 
       - name: Maven build
-        # Invoked by absolute path rather than relying on PATH, to rule out any preinstalled "mvn"
-        # on the runner image taking precedence.
         run: "$MAVEN_HOME/bin/mvn --batch-mode --update-snapshots verify"
