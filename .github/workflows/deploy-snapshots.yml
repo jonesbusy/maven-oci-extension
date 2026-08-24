@@ -27,7 +27,7 @@ jobs:
           java-version: "25"
           # Writes ~/.m2/settings.xml with a <server> block for this id, reading the actual
           # credentials from the env vars below at deploy time (not baked into the file).
-          server-id: central-snapshots
+          server-id: sonatype-central-portal
           server-username: MAVEN_USERNAME
           server-password: MAVEN_CENTRAL_TOKEN
 

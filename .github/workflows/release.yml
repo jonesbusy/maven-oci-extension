@@ -26,9 +26,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "25"
-          # Writes ~/.m2/settings.xml with a <server id="central"> block, matching the
-          # publishingServerId used by central-publishing-maven-plugin's "release" profile config.
-          server-id: central
+          server-id: sonatype-cp
           server-username: MAVEN_USERNAME
           server-password: MAVEN_CENTRAL_TOKEN
 
@@ -47,30 +45,26 @@ jobs:
           "$MAVEN_HOME/bin/mvn" -version
 
       - name: Import GPG key
-        # Only for artifact signing (maven-gpg-plugin, "release" profile) -- there's no git commit or
-        # tag being created by this workflow, so no git-signing setup is needed.
         uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GPG_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Deploy release
-        # CI-friendly version (https://maven.apache.org/guides/mini/guide-maven-ci-friendly.html):
-        # the tag that triggered this workflow *is* the version to release, overriding the
-        # 0.0.1-SNAPSHOT default from .mvn/maven.config. No release:prepare/perform -- the tag
-        # already exists (it's what triggered this run), so there's no commit/tag/push left to do.
-        run: "$MAVEN_HOME/bin/mvn --batch-mode -Drevision=${{ github.ref_name }} -Prelease -DskipTests deploy"
+        run: >-
+          $MAVEN_HOME/bin/mvn --batch-mode -Drevision=${{ github.ref_name }} -Prelease -DskipTests
+          -DaltDeploymentRepository=id::njord:
+          -Dnjord.autoPublish=true
+          -Dnjord.publisher=sonatype-cp
+          -Dnjord.publisher.sonatype-cp.publishingType=AUTOMATIC
+          -Dnjord.publisher.sonatype-cp.waitForStates=true
+          -Dnjord.publisher.sonatype-cp.waitForStatesTimeout=PT2H
+          deploy
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.CENTRAL_PASSWORD }}
 
       - name: Close release draft
-        # release-drafter (see release-drafter.yml) keeps a draft release up to date as PRs merge to
-        # main. There's nothing to build/attach here -- the deploy step above already published the
-        # jars to Maven Central -- so all that's left is to publish that existing draft (flip draft to
-        # false) now that the version it describes has actually been released. If the release was
-        # instead triggered by publishing the draft directly from the GitHub UI, it won't be a draft
-        # anymore by the time this runs, so there's nothing to do.
         run: |
           draft_id=$(gh api "/repos/${{ github.repository }}/releases" | jq -r '.[] | select(.draft == true) | .id')
           if [[ -z "$draft_id" ]]; then
