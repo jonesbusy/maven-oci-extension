@@ -53,7 +53,7 @@ jobs:
       - name: Deploy release
         run: >-
           $MAVEN_HOME/bin/mvn --batch-mode -Drevision=${{ github.ref_name }} -Prelease -DskipTests
-          -DaltDeploymentRepository=id::njord:
+          -DaltDeploymentRepository=sonatype-cp::njord:
           -Dnjord.autoPublish=true
           -Dnjord.publisher=sonatype-cp
           -Dnjord.publisher.sonatype-cp.publishingType=AUTOMATIC
