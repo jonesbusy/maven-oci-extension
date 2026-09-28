@@ -12,9 +12,9 @@ permissions:
   contents: read
 
 env:
-  MAVEN_VERSION: 4.0.0-rc-6
-  MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
-  OCI_IT_MAVEN_HOME: /opt/apache-maven-4.0.0-rc-6
+  MAVEN_VERSION: 4.0.0-rc-7
+  MAVEN_HOME: /opt/apache-maven-4.0.0-rc-7
+  OCI_IT_MAVEN_HOME: /opt/apache-maven-4.0.0-rc-7
 
 jobs:
   pre-commit:
