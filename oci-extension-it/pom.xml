@@ -80,6 +80,10 @@
                explicit which file backs the config regardless of classpath ordering. -->
           <systemPropertyVariables>
             <logback.configurationFile>oci-extension-it-logback.xml</logback.configurationFile>
+            <!-- Lets ItSupport.copyTemplate() stamp the reactor's actual version into the IT
+                 templates' .mvn/extensions.xml, instead of those files hardcoding a version that
+                 silently goes stale the next time ${revision} is bumped. -->
+            <oci-extension-core.version>${project.version}</oci-extension-core.version>
           </systemPropertyVariables>
         </configuration>
         <executions>
