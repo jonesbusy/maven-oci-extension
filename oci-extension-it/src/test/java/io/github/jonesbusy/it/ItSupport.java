@@ -113,6 +113,13 @@ abstract class ItSupport {
 
     /**
      * Copies the template project at {@code it/src/test/resources/it/<name>} into {@code targetDir}.
+     * Templates that declare {@code oci-extension-core} as a core extension reference it as
+     * {@code @oci-extension-core.version@} rather than a literal version, since a literal goes stale
+     * silently the next time {@code ${revision}} is bumped (it did: the templates hardcoded
+     * {@code 0.0.1-SNAPSHOT} long after the reactor moved to {@code 0.0.2-SNAPSHOT}, and CI only
+     * caught it once the Maven-version-keyed dependency cache stopped hiding the stale artifact).
+     * That placeholder is replaced here with the version this reactor was actually just installed
+     * under, so template and reactor can never drift apart again.
      */
     static void copyTemplate(String name, Path targetDir) throws IOException {
         Path source = Path.of("src/test/resources/it", name);
@@ -130,6 +137,17 @@ abstract class ItSupport {
                     Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        }
+        Path extensionsXml = targetDir.resolve(".mvn/extensions.xml");
+        if (Files.isRegularFile(extensionsXml)) {
+            String ociExtensionCoreVersion = System.getProperty("oci-extension-core.version");
+            if (ociExtensionCoreVersion == null || ociExtensionCoreVersion.isBlank()) {
+                throw new IllegalStateException(
+                        "System property oci-extension-core.version is not set; run this test through "
+                                + "the oci-extension-it Maven module (failsafe wires it from ${project.version}), "
+                                + "not directly from the IDE.");
+            }
+            replaceToken(extensionsXml, "@oci-extension-core.version@", ociExtensionCoreVersion);
         }
     }
 
