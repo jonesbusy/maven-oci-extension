@@ -62,7 +62,7 @@
     <!-- Publishing to Central: njord, not central-publishing-maven-plugin, which only supports
          Maven 3 (it never binds anything to the deploy phase under Maven 4, confirmed empirically:
          "mvn deploy" completes with BUILD SUCCESS without a single deploy-phase execution logged). -->
-    <version.njord>0.9.10</version.njord>
+    <version.njord>0.10.0</version.njord>
   </properties>
 
   <dependencyManagement>
